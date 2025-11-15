@@ -32,13 +32,15 @@ def main():
     payloads = payloads.reshape((db_size, PAYLOAD_DIM))
 
     # Add marker value (8192) to each payload to make it 8 int16 values
-    marker = np.full((db_size, 1), 8192, dtype=np.int16)
+    marker = np.full((db_size, 1), 256, dtype=np.int16)  # the max value of the names (ascii) is 128 so this can be 256
     extended_payloads = np.concatenate([marker, payloads], axis=1)
     extended_payloads = extended_payloads / PRECISION
+    extended_payloads = extended_payloads.astype(np.float32)
 
     # Save combined database preserving 2D shape
     np.save(f"{dataset_dir}/db.npy", db)
     np.save(f"{dataset_dir}/payloads.npy", extended_payloads)
+    extended_payloads.tofile(f"{dataset_dir}/payloads_float.bin")  # overwrite original payloads.bin
     
     server_print(f"Database shape: {db.shape} ({record_dim} vector dims")
     server_print(f"Extended payloads shape: {extended_payloads.shape} ({PAYLOAD_DIM+1} payload values per record)")

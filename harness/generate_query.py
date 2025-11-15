@@ -11,6 +11,7 @@ import random
 import argparse
 import numpy as np
 from params import InstanceParams, TOY, LARGE
+import json
 
 def main():
     """
@@ -37,21 +38,16 @@ def main():
     # Get dataset directory from params
     dataset_dir = params.datadir()
 
-    # Generate a new query: First choose a random vector on the unit sphere in
-    # dimension dim, made out of float32
-    rng = np.random.default_rng()
-    qry = rng.standard_normal(dim, dtype=np.float32)
+    # Choose random phone number from the predefined numbers
+    contacts_file = dataset_dir / "contacts.json"
+    with open(contacts_file, "r") as f:
+        contacts = json.load(f)
+    idx = random.randint(0, len(contacts) - 1)
+    print(f"Selected phone number for query: {contacts[idx][0]} ({contacts[idx][1]})")
 
-    # With probability 50%, keep the query as the new vector qry.
-    # Otherwise, read a random center from the centers file and set the
-    # query as center + 0.3*qry.
-    if random.randint(0, 1) == 0:
-        centers_file = dataset_dir / "centers.bin"
-        centers = np.fromfile(centers_file, dtype=np.float32).reshape(-1,dim)
-        center = centers[random.randint(0, len(centers)-1)]
-        qry = center + (0.3 * qry / np.linalg.norm(qry))
-
-    qry /= np.linalg.norm(qry) # normalize to unit length
+    centers_file = dataset_dir / "centers.bin"
+    centers = np.fromfile(centers_file, dtype=np.float32).reshape(-1, dim)
+    qry = centers[idx]
 
     # store the query to file
     query_file = dataset_dir / "query.bin"

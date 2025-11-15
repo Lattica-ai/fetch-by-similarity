@@ -53,13 +53,9 @@ def main():
     result_payloads = result_data.reshape(-1, PAYLOAD_DIM)
 
     num_expected = len(expected_payloads)
-    num_results = len(result_payloads)
+    assert num_expected == 1, "There is only one correct answer for the query"
 
-    # If there are more than 32 expected results, always report success
-    if num_expected > 32:
-        print(f"         [harness] PASS (Too many matches: {num_expected} > 32,",
-              "skipping detailed comparison)")
-        sys.exit(0)
+    num_results = len(result_payloads)
 
     # Otherwise, compare the payloads
     if num_expected != num_results:
@@ -67,14 +63,14 @@ def main():
         sys.exit(1)
 
     # Compare each payload vector
-    for i in range(num_expected):
-        if not np.array_equal(expected_payloads[i], result_payloads[i]):
-            print(f"         [harness] FAIL (Payload {i} mismatch)")
-            print(f"  Expected: {expected_payloads[i]}")
-            print(f"  Got:      {result_payloads[i]}")
-            sys.exit(1)
+    if not np.array_equal(expected_payloads[0], result_payloads[0]):
+        print(f"         [harness] FAIL (Payload mismatch)")
+        print(f"  Expected: {expected_payloads[0]}")
+        print(f"  Got:      {result_payloads[0]}")
+        sys.exit(1)
 
-    print(f"         [harness] PASS (All {num_expected} payload vectors match)")
+    caller_id = ''.join(chr(x) for x in result_payloads[0] if x != 0)
+    print(f"         [harness] PASS! Retrieved caller ID: {caller_id}")
     sys.exit(0)
 
 
