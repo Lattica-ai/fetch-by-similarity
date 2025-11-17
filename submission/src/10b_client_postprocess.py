@@ -22,7 +22,7 @@ def _post_process(raw_result):
     def _extract_final_results(a):
         a = a.reshape(-1, 8).moveaxis(0, -1).reshape(8, -1, 8).moveaxis(1, 0).reshape(-1, 8)
         # Create a mask for rows that have any nonzero element
-        MAX_VAL = 256
+        MAX_VAL = 8 # the marker value added in preprocess_dataset is 256, so expect 256/PRECISION=8
         valid_rows_mask = a[:, 0] > MAX_VAL * 1.4  # the marker row is expected to be 2 * MAX_VAL
         a = a[valid_rows_mask]
         scale = 2 * MAX_VAL * PRECISION / a[:, 0]  # scale each row by the expected marker value

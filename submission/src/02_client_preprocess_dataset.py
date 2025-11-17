@@ -31,7 +31,7 @@ def main():
     payloads = np.fromfile(f"{dataset_dir}/payloads.bin", dtype=np.int16)
     payloads = payloads.reshape((db_size, PAYLOAD_DIM))
 
-    # Add marker value (8192) to each payload to make it 8 int16 values
+    # Add marker value to each payload to make it 8 int16 values
     marker = np.full((db_size, 1), 256, dtype=np.int16)  # the max value of the names (ascii) is 128 so this can be 256
     extended_payloads = np.concatenate([marker, payloads], axis=1)
     extended_payloads = extended_payloads / PRECISION
