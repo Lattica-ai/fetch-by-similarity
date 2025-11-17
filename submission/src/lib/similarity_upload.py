@@ -6,7 +6,6 @@ import requests
 from lattica_common import http_settings
 from lattica_common.version_utils import get_module_info
 from lattica_common.app_api import ClientVersionError
-from lib.token_utils import extract_token_id
 
 
 class SimilarityUploader:
@@ -23,16 +22,8 @@ class SimilarityUploader:
         self.module_name = "fetch-by-similarity"
         self.module_version = get_module_info(self.module_name) if self.module_name else "unknown"
     
-    def upload_database(self, db_file_path: str, model_id: str) -> dict:
-        # Extract tokenId for filename
-        token_id = extract_token_id(self.token)
-        expected_filename = token_id
-        
+    def upload_database(self, db_file_path: str) -> dict:
         url = f"{http_settings.get_be_url()}/api/files/upload_custom_encrypted_data"
-        # modelId is required by the backend to:
-        #  - Verifies the model exists in the database, and its status is ACTIVE or UPLOADED
-        #  - Checks if the token has permission to access the model (for private models)
-        params = {'modelId': model_id}
         
         headers = {
             'Authorization': f'Bearer {self.token}',
@@ -50,7 +41,6 @@ class SimilarityUploader:
         with open(db_file_path, 'rb') as file:
             response = requests.post(
                 url,
-                params=params,
                 data=file,
                 headers=headers,
                 stream=True
@@ -70,10 +60,4 @@ class SimilarityUploader:
                 # If response is not JSON, use text
                 raise Exception(f"FAILED upload-custom-encrypted-data with error: {response.text}")
         
-        result = response.json()
-        
-        # Verify the filename matches our expectation
-        if result.get('filename') != expected_filename:
-            print(f"Warning: Expected filename '{expected_filename}' but got '{result.get('filename')}'")
-        
-        return result
+        return response.json()

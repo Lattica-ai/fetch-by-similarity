@@ -10,9 +10,9 @@ import numpy as np
 import torch
 import zipfile
 
+from lib.constants import TOKEN
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
-from lib.constants import MODEL_ID
 from lib.similarity_upload import SimilarityUploader
 from lattica_query.serialization.api_serialization_utils import dumps_proto_tensor
 import lattica_query.query_toolkit as toolkit_interface
@@ -30,7 +30,6 @@ def main():
     dataset_dir = f"datasets/{instance_name}"
     encrypted_dir = f"io/{instance_name}/encrypted"
     key_dir = f"io/{instance_name}/keys"
-    server_dir = f"io/{instance_name}/server"
     os.makedirs(encrypted_dir, exist_ok=True)
     
     # Load the db and payloads from step 2
@@ -77,14 +76,6 @@ def main():
     server_print(f"Encrypted payloads size: {len(encrypted_payloads_data)} bytes")
     timer.log_step(4.12, "Payloads encryption")
 
-    # Get token for upload
-    token_path = f"{server_dir}/token.txt"
-    if not os.path.exists(token_path):
-        raise FileNotFoundError(f"Token file not found: {token_path}. Make sure step 3 (key generation) was run first.")
-    
-    with open(token_path, "r") as f:
-        token = f.read().strip()
-
     # Write archive containing db & payloads
     archive_path = f"{encrypted_dir}/encrypted_data.zip"
     with zipfile.ZipFile(archive_path, 'w') as zipf:
@@ -94,8 +85,8 @@ def main():
 
     # Upload the archive as custom encrypted data
     server_print(f"Uploading encrypted database & payloads from {archive_path}...")
-    uploader = SimilarityUploader(token)
-    uploader.upload_database(archive_path, MODEL_ID)
+    uploader = SimilarityUploader(TOKEN)
+    uploader.upload_database(archive_path)
 
     # Log upload phase completion
     timer.log_step(4.2, "Database & payloads upload")

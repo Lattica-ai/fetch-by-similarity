@@ -3,6 +3,6 @@
 constants.py - Shared constants for FHE similarity benchmark
 """
 
-# Model ID for similarity search
-MODEL_ID = "similarityFetch"
+# TOKEN to enable authenticated API access to Lattica backend
+TOKEN = "<TOKEN>"
 PRECISION = 16

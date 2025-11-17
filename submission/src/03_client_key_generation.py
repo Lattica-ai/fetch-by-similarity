@@ -8,9 +8,9 @@ import base64
 import json
 
 from lattica_query.lattica_query_client import QueryClient
-from lattica_query.auth import get_demo_token
-from lib.constants import MODEL_ID
+from lib.constants import TOKEN
 from lib.server_logger import server_print
+
 
 def main():
     # Parse arguments
@@ -22,17 +22,15 @@ def main():
     instance_name = instance_names[size]
     key_dir = f"io/{instance_name}/keys"
     os.makedirs(key_dir, exist_ok=True)
-    os.environ["LATTICA_EVK_PATHNAME"] = f"{key_dir}/evk.lpk"
-    # Get demo token using shared model ID constant
-    token = get_demo_token(MODEL_ID)
+    # os.environ["LATTICA_EVK_PATHNAME"] = f"{key_dir}/evk.lpk"
     
     # Initialize QueryClient
     if os.getenv('LATTICA_RUN_MODE') == 'LOCAL':
         from lattica_query.dev_utils.lattica_query_client_local import \
             LocalQueryClient
-        client = LocalQueryClient(token)
+        client = LocalQueryClient(TOKEN)
     else:
-        client = QueryClient(token)
+        client = QueryClient(TOKEN)
     
     # Generate keys (this also uploads the evaluation key automatically)
     context, secret_key, _ = client.generate_key()
@@ -52,15 +50,8 @@ def main():
     with open(context_path, "wb") as f:
         f.write(context)
     
-    # Save token for use in later steps (step 5 and step 9)
-    server_dir = f"io/{instance_name}/server"
-    os.makedirs(server_dir, exist_ok=True)
-    token_path = f"{server_dir}/token.txt"
-    with open(token_path, "w") as f:
-        f.write(token)
-    
     server_print(f"Keys generated and saved to {key_dir}/")
-    server_print(f"Token saved to {token_path}")
-    
+
+
 if __name__ == "__main__":
     main()
