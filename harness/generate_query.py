@@ -11,7 +11,8 @@ import random
 import argparse
 import numpy as np
 from params import InstanceParams, TOY, LARGE
-import json
+import csv
+
 
 def main():
     """
@@ -34,20 +35,21 @@ def main():
     # Use params.py to get instance parameters
     params = InstanceParams(size)
     dim = params.get_record_dim()
+    n_records = params.get_db_size()
 
     # Get dataset directory from params
     dataset_dir = params.datadir()
 
     # Choose random phone number from the predefined numbers
-    contacts_file = dataset_dir / "contacts.json"
-    with open(contacts_file, "r") as f:
-        contacts = json.load(f)
-    idx = random.randint(0, len(contacts) - 1)
-    print(f"Selected phone number for query: {contacts[idx][0]} ({contacts[idx][1]})")
+    with open(f"contacts_db_{n_records}.csv", newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        contacts = list(reader)
+    idx = random.randint(0, n_records - 1)
+    print(f"         [harness] Selected phone number for query: {contacts[idx]['phone_number']} ({contacts[idx]['contact_name']})")
 
-    centers_file = dataset_dir / "centers.bin"
-    centers = np.fromfile(centers_file, dtype=np.float32).reshape(-1, dim)
-    qry = centers[idx]
+    db_file = dataset_dir / "db.bin"
+    db = np.fromfile(db_file, dtype=np.float32).reshape(-1, dim)
+    qry = db[idx]
 
     # store the query to file
     query_file = dataset_dir / "query.bin"

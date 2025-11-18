@@ -22,7 +22,7 @@ def instance_name(size):
     names = ["toy", "small", "medium", "large"]
     return names[size]
 
-# The payloads are vectors of 7 int16 numbers in the range [0,4095)
+# The payloads are vectors of 7 int16 numbers in the range [0,128)
 PAYLOAD_DIM = 7
 
 class InstanceParams:
