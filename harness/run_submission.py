@@ -28,6 +28,8 @@ def main():
                         help='Random seed for dataset and query generation')
     parser.add_argument('--count_only', action='store_true',
                         help='Only count # of matches, do not return payloads')
+    parser.add_argument('--phone_number', type=str,
+                        help='Phone number to search for')
 
     args = parser.parse_args()
     size = args.size
@@ -112,6 +114,8 @@ def main():
             # Use a different seed for each run but derived from the base seed
             genqry_seed = rng.integers(0,0x7fffffff)
             cmd.extend(["--seed", str(genqry_seed)])
+        if args.phone_number is not None:
+            cmd.extend(["--phone_number", args.phone_number])
         subprocess.run(cmd, check=True)
         utils.log_step(6, "Query generation")
 

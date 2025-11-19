@@ -30,7 +30,7 @@ class ServerLogger:
         
         # Format server tag with color
         if self.use_colors:
-            server_tag = f"{self.GREEN}{self.BOLD}[server]{self.RESET}"
+            server_tag = f"{self.BOLD}[server]{self.RESET}"
         else:
             server_tag = "[server]"
         

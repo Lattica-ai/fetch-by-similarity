@@ -14,6 +14,11 @@ import numpy as np
 # The payloads are vectors of 7 int16 numbers
 PAYLOAD_DIM = 7
 
+GREEN = '\033[92m'
+BOLD = '\033[1m'
+RESET = '\033[0m'
+
+
 def main():
     """
     Usage:  python3 verify_result.py  <expected_file>  <result_file> [--count_only]
@@ -53,8 +58,6 @@ def main():
     result_payloads = result_data.reshape(-1, PAYLOAD_DIM)
 
     num_expected = len(expected_payloads)
-    assert num_expected == 1, "There is only one correct answer for the query"
-
     num_results = len(result_payloads)
 
     # Otherwise, compare the payloads
@@ -63,14 +66,17 @@ def main():
         sys.exit(1)
 
     # Compare each payload vector
-    if not np.array_equal(expected_payloads[0], result_payloads[0]):
+    if not np.array_equal(expected_payloads, result_payloads):
         print(f"         [harness] FAIL (Payload mismatch)")
         print(f"  Expected: {expected_payloads[0]}")
         print(f"  Got:      {result_payloads[0]}")
         sys.exit(1)
 
+    if num_expected == 0:
+        print(f"         [harness] {BOLD}{GREEN}UNKNOWN{RESET} {BOLD}caller ID{RESET}")
+        sys.exit(0)
     caller_id = ''.join(chr(x) for x in result_payloads[0] if x != 0)
-    print(f"         [harness] PASS! Retrieved caller ID: {caller_id}")
+    print(f"         [harness] {BOLD}Retrieved caller ID: {GREEN}{caller_id}{RESET}")
     sys.exit(0)
 
 

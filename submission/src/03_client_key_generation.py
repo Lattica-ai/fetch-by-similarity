@@ -22,7 +22,7 @@ def main():
     instance_name = instance_names[size]
     key_dir = f"io/{instance_name}/keys"
     os.makedirs(key_dir, exist_ok=True)
-    # os.environ["LATTICA_EVK_PATHNAME"] = f"{key_dir}/evk.lpk"
+    os.environ["LATTICA_EVK_PATHNAME"] = f"{key_dir}/evk.lpk"
     
     # Initialize QueryClient
     if os.getenv('LATTICA_RUN_MODE') == 'LOCAL':
