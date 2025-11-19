@@ -126,44 +126,45 @@ deactivate
 
 ## Description of stages
 
-This harness is configured as a single end-to-end demo, not as a set of independent stages to run separately.
+This harness is configured as a **single end-to-end demo**, not as a set of independent stages to run separately.  
 The typical usage flow is:
 
-clone → configure license/token → install requirements → run_submission.py
+`clone → configure license/token → install requirements → run_submission.py`
 
 A single command:
 
+```bash
 python harness/run_submission.py 0 --seed 12345 --num_runs 1
-
 
 executes the complete encrypted search pipeline:
 
-Build and setup
+1. Build and setup
 Performed automatically on the first run (compilation, internal initialization, etc.).
 
-Load the 1,000-record phone book
+2. Create a set of private and evaluation keys
 The demo uses a synthetic dataset of 1,000 (phone, name) pairs defined in submission/src/lib/constants.py.
 
-Create a vectorized database
+3. Create a vectorized database
+The demo uses a synthetic dataset of 1,000 (phone, name) pairs defined in submission/src/lib/constants.py.
 Each (phone, name) entry is converted into one or more embedding vectors and auxiliary features suitable for similarity search.
 
-Encrypt the vectorized DB and upload it
+4. Encrypt the vectorized DB and upload it
 The client side encrypts the vectorized database and uploads the ciphertexts, together with evaluation keys, to Lattica’s server.
 
-Automatically choose a query phone number
+5. Automatically choose a query phone number
 The script automatically selects one of the 1,000 phone numbers from the dataset as the search target
 (the user does not manually enter the number).
 
-Create and encrypt the query embedding
+6. Create and encrypt the query embedding
 A query embedding is built for the chosen number and encrypted locally.
 
-Run similarity search fully on ciphertexts
+7. Run similarity search fully on ciphertexts
 The encrypted query is sent to the FHE engine, which runs the entire similarity search in the encrypted domain.
 
-Receive and decrypt the result
+8. Receive and decrypt the result
 The server returns only encrypted results. The client decrypts the response and decodes the match.
 
-Print match and timing
+9. Print match and timing
 The harness prints the matched phone number and owner name, along with timing and measurement information for the main stages.
 
 Note: Because each stage depends on files, keys, and IDs produced in earlier steps of the same run, running only parts of the flow is not supported without modifying the code. This makes the demo simple to operate (one command runs everything) while still representative of a real FHE pipeline.
