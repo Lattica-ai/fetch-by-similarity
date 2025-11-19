@@ -119,7 +119,7 @@ deactivate
 ├─ measurements/      # Logs with timing / performance numbers
 ├─ scripts/           # Helper scripts for build and setup
 └─ submission/        # Lattica’s workload implementation
-    ├─ src/           # Client/server code, including Samsung demo logic
+    ├─ src/           # Client/server code, including synthetic dataset for demo logic
     ├─ README.md      # Implementation-level documentation
     └─ [...]
 ```
@@ -143,7 +143,6 @@ executes the complete encrypted search pipeline:
 Performed automatically on the first run (compilation, internal initialization, etc.).
 
 2. Create a set of private and evaluation keys
-The demo uses a synthetic dataset of 1,000 (phone, name) pairs defined in submission/src/lib/constants.py.
 
 3. Create a vectorized database
 The demo uses a synthetic dataset of 1,000 (phone, name) pairs defined in submission/src/lib/constants.py.
