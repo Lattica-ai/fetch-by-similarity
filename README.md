@@ -1,4 +1,4 @@
-# FHE Benchmarking Suite - Fetch-by-Similarity Workload
+# Lattica – Fetch-by-Similarity Phone-Number Demo 
 
 This repository contains Lattica’s implementation of the **fetch-by-similarity** workload, customized to demonstrate **encrypted phone-number search**.
 
