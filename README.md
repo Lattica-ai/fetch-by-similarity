@@ -1,13 +1,8 @@
 # FHE Benchmarking Suite - Fetch-by-Similarity Workload
 
-This repository contains a reference implementation of the
-Fetch-by-cosine-similarity workload of the FHE benchmarking suite of
-[HomomorphicEncrypption.org].
+This repository contains Lattica’s implementation of the **fetch-by-similarity** workload, customized to demonstrate **encrypted phone-number search**.
 
-Submitters need to clone/fork this repository, then replace the content of
-the `submission` subdirectory by their own implementation.
-They also may need to changes or replace the script `scripts/build_task.sh`
-to account for dependencies and build environment for their submission.
+It is based on the original FHE benchmarking harness from [HomomorphicEncryption.org]
 
 ## Dependencies
 
@@ -16,29 +11,6 @@ The harness requires python and some corresponding packages specified in `requir
 python3 -m venv virtualenv
 source ./virtualenv/bin/activate
 pip3 install -r requirements.txt
-```
-
-This implementation requires OpenFHE v1.3.x, the default build environment
-assumes that the correct version of OpenFHE is installed locally at
-`/third-party/openfhe`.
-
-### Installing OpenFHE
-
-The installation steps for OpenFHE are described [here](https://openfhe-development.readthedocs.io/en/latest/sphinx_rsts/intro/installation/installation.html).  
-
-If OpenFHE is installed at a different location, that location should be
-specified using the `-CMAKE_PREFIX_PATH` variable in `build_task.sh`.
-(In the case of a system-wide installation at `/usr/local/`, unset the
-`-CMAKE_PREFIX_PATH` variable.)
-
-For users who want to do a local fresh install, they should run `get_openfhe.sh`,
-which is designed to install the specified version of OpenFHE at the
-`third-party` subdirectory in the current directory.
-By default, `build_task.sh` looks for the library at this location. See more
-instructions in `submission/CMakeLists.txt` if `build_task.sh` does not succeed.
-
-```console
-./scripts/get_openfhe.sh
 ```
 
 ## Running the fetch-by-similarity workload
@@ -132,21 +104,23 @@ deactivate
 
 ```bash
 [root] /
-├─ README.md     # This file
-├─ LICENSE.md    # Software license (Apache v2)
-├─ harness/      # Scripts to drive the workload implementation
-|   ├─ run_submission.py
-|   ├─ cleartext_impl.py
-|   ├─ verify_result.py
-|   └─ [...]
-├─ datasets/     # The harness scripts create and populate this directory
-├─ io/           # This directory is used for client<->server communication
-├─ measurements/ # Holds logs with performance numbers
-├─ scripts/      # Helper scripts for dependencies and build system
-└─ submission/   # This is where the workload implementation lives
-    ├─ README.md   # Submission documentation (mandatory)
-    ├─ LICENSE.md  # Optional software license (if different from Apache v2)
-    ├─ docs/       # Optional: additional documentation
+├─ README.md          # This file
+├─ LICENSE.md         # Software license (Apache v2)
+├─ pyproject.toml     # Python project configuration
+├─ requirements.txt   # Python dependencies for the harness + query client
+├─ run_pip, run_uv    # Helper scripts for Python environment setup (optional)
+├─ harness/           # Python scripts to drive the workload
+│   ├─ run_submission.py   # Main entry point
+│   ├─ cleartext_impl.py   # Cleartext reference implementation
+│   ├─ verify_result.py    # Result checking utilities
+│   └─ [...]
+├─ datasets/          # Created/populated by the harness (plaintext/encrypted datasets)
+├─ io/                # Used for client ↔ server intermediate files (if any)
+├─ measurements/      # Logs with timing / performance numbers
+├─ scripts/           # Helper scripts for build and setup
+└─ submission/        # Lattica’s workload implementation
+    ├─ src/           # Client/server code, including Samsung demo logic
+    ├─ README.md      # Implementation-level documentation
     └─ [...]
 ```
 Submitters must overwrite the contents of the `scripts` and `submissions`
