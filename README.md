@@ -123,35 +123,48 @@ deactivate
     ├─ README.md      # Implementation-level documentation
     └─ [...]
 ```
-Submitters must overwrite the contents of the `scripts` and `submissions`
-subdirectories.
 
 ## Description of stages
 
-A submitter should edit the `client_*` / `server_*` sources in `/submission`. 
-Moreover, for the particular parameters related to a workload, the submitter can modify the params files.
+This harness is configured as a **single end-to-end demo**, not as a set of independent stages to run separately.  
+The typical usage flow is:
 
-The current stages are the following, targeted to a client-server scenario.
-The order in which they are happening in `run_submission` assumes an initialization step which is 
-database-dependent and run only once, and potentially multiple runs for multiple queries.
-Each file can take as argument the test case size.
+```bash
+clone → configure license/token → install requirements → run_submission.py
+A single command:
+python harness/run_submission.py 0 --seed 12345 --num_runs 1
+executes the complete encrypted search pipeline:
+submission/src/lib/constants.py
 
+1. Build and setup
+Performed automatically on the first run (compilation, internal initialization, etc.).
 
-| Stage executables                | Description |
-|----------------------------------|-------------|
-| `client_key_generation`          | Generate all key material and cryptographic context at the client.           
-| `client_preprocess_dataset`      | (Optional) Any in the clear computations the client wants to apply over the dataset/model.
-| `client_preprocess_query`        | (Optional) Any in the clear computations the client wants to apply over the query/input.
-| `client_encode_encrypt_db`       | (Optional) Plaintext encoding and encryption of the dataset/model at the client.
-| `client_encode_encrypt_query`    | Plaintext encoding and encryption of the query/input at the client.
-| `server_preprocess_dataset`      | (Optional) Any in the clear or encrypted computations the server wants to apply over the dataset/model.
-| `server_encrypted_compute`       | The computation the server applies to achieve the workload solution over encrypted daa.
-| `client_decrypt_decode`          | Decryption and plaintext decoding of the result at the client.
-| `client_postprocess`:            | Any in the clear computation that the client wants to apply on the decrypted result.
+2. Creates private and evaluation keys
 
+3. Load the 1,000-record phone book
+The demo uses a synthetic dataset of 1,000 (phone, name) pairs defined in: 
 
-The outer python script measures the runtime of each stage.
-The current stage separation structure requires reading and writing to files more times than minimally necessary.
-For a more granular runtime measuring, which would account for the extra overhead described above, we encourage
-submitters to separate and print in a log the individual times for reads/writes and computations inside each stage.
+4. Create a vectorized database
+Each (phone, name) entry is converted into one or more embedding vectors and auxiliary features suitable for similarity search.
+
+5. Encrypt the vectorized DB and upload it
+The client side encrypts the vectorized database and uploads the ciphertexts, together with evaluation keys, to Lattica’s server.
+
+6. Automatically choose a query phone number
+The script automatically selects one of the 1,000 phone numbers from the dataset as the search target.
+
+7. Create and encrypt the query embedding
+A query embedding is built for the chosen number and encrypted locally.
+
+8. Run similarity search fully on ciphertexts
+The encrypted query is sent to the FHE engine, which runs the entire similarity search in the encrypted domain.
+
+9. Receive and decrypt the result
+The server returns only encrypted results. The client decrypts the response and decodes the match.
+
+10. Print match and timing
+The harness prints the matched phone number and owner name, along with timing and measurement information for the main stages.
+
+Note: Because each stage depends on files, keys, and IDs produced in earlier steps of the same run, running only parts of the flow is not supported without modifying the code.
+
 
