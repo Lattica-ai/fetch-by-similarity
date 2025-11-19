@@ -135,6 +135,7 @@ A single command:
 
 ```bash
 python harness/run_submission.py 0 --seed 12345 --num_runs 1
+```
 
 executes the complete encrypted search pipeline:
 
@@ -167,6 +168,6 @@ The server returns only encrypted results. The client decrypts the response and 
 9. Print match and timing
 The harness prints the matched phone number and owner name, along with timing and measurement information for the main stages.
 
-Note: Because each stage depends on files, keys, and IDs produced in earlier steps of the same run, running only parts of the flow is not supported without modifying the code. This makes the demo simple to operate (one command runs everything) while still representative of a real FHE pipeline.
+> **Note:** Because each stage depends on files, keys, and IDs produced in earlier steps of the same run, running only parts of the flow is **not supported** without modifying the code. This keeps the demo simple to operate (one command runs everything) while still representative of a real FHE pipeline.
 
 
