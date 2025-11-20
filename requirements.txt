@@ -2,3 +2,6 @@
 numpy>=2.0.1,<3.0.0
 lattica-query
 torch==2.5.1+cpu
+
+# Install the current project in editable mode
+-e .

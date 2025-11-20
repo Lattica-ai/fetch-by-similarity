@@ -5,8 +5,8 @@ set -euo pipefail
 
 # Set OpenFHE installation path
 export CMAKE_PREFIX_PATH=~/p/openfhe-development/install
-export LATTICA_BE_URL=http://localhost:3050
-export LATTICA_RUN_MODE=LOCAL
+export LATTICA_BE_URL=https://gini.api.b543.lattica.dev
+export LATTICA_RUN_MODE=REMOTE
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -37,23 +37,8 @@ if [[ -n "${VIRTUAL_ENV:-}" ]]; then
 fi
 echo ""
 
-# Check if any arguments provided, default to toy (0) if none
-if [ $# -eq 0 ]; then
-    echo "No arguments provided, using default: toy dataset (0)"
-    set -- 0
-fi
-
-# Determine dataset size from first argument
-SIZE=$1
-case "$SIZE" in
-    0) SIZE_NAME="toy" ;;
-    1) SIZE_NAME="small" ;;
-    2) SIZE_NAME="medium" ;;
-    3) SIZE_NAME="large" ;;
-    *) SIZE_NAME="" ;;
-esac
-
 # Clean up previous test artifacts for this specific size
+SIZE_NAME="toy"
 if [ -n "$SIZE_NAME" ]; then
     echo "Cleaning up previous $SIZE_NAME dataset..."
     rm -rf "datasets/$SIZE_NAME"
@@ -63,4 +48,4 @@ if [ -n "$SIZE_NAME" ]; then
 fi
 
 echo "Running benchmark with pip/python..."
-python harness/run_submission.py "$@"
+python harness/run_submission.py 0 "$@"
