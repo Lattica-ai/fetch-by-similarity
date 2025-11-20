@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-exec python submission/src/10b_client_postprocess.py "$@"

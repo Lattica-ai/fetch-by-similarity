@@ -12,8 +12,8 @@ import base64
 from lattica_query.serialization.api_serialization_utils import dumps_proto_tensor
 import lattica_query.query_toolkit as toolkit_interface
 from harness.params import InstanceParams
-from lib.server_logger import server_print
-from lib.server_timer import ServerTimer
+from submission.src.lib.server_logger import server_print
+from submission.src.lib.server_timer import ServerTimer
 
 
 def main():

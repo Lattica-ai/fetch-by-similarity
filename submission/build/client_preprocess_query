@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-exec python submission/src/07_client_preprocess_query.py "$@"

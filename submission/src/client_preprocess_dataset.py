@@ -6,8 +6,8 @@ import sys
 import numpy as np
 
 from harness.params import InstanceParams, PAYLOAD_DIM
-from lib.server_logger import server_print
-from lib.constants import PRECISION
+from submission.src.lib.server_logger import server_print
+from submission.src.lib.constants import PRECISION
 
 def main():
     # Parse arguments

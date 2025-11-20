@@ -7,10 +7,9 @@ import os
 import numpy as np
 import torch
 
-from harness.params import PAYLOAD_DIM
-from lib.server_logger import server_print
-from lib.server_timer import ServerTimer
-from lib.constants import PRECISION
+from submission.src.lib.server_logger import server_print
+from submission.src.lib.server_timer import ServerTimer
+from submission.src.lib.constants import PRECISION
 
 
 def _post_process(raw_result):

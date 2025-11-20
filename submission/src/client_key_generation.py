@@ -8,8 +8,8 @@ import base64
 import json
 
 from lattica_query.lattica_query_client import QueryClient
-from lib.constants import TOKEN
-from lib.server_logger import server_print
+from submission.src.lib.constants import TOKEN
+from submission.src.lib.server_logger import server_print
 
 
 def main():

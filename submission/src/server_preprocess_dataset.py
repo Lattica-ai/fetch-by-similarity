@@ -2,9 +2,9 @@
 """
 server_preprocess_dataset.py - Load database to server
 """
-from lib.constants import TOKEN
+from submission.src.lib.constants import TOKEN
 from lattica_query.worker_api import LatticaWorkerAPI
-from lib.server_logger import server_print
+from submission.src.lib.server_logger import server_print
 
 
 def main():

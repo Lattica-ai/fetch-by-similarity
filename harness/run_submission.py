@@ -14,6 +14,18 @@ import numpy as np
 import utils
 from params import InstanceParams, TOY, LARGE, instance_name
 
+
+from submission.src import client_preprocess_dataset
+from submission.src import client_key_generation
+from submission.src import client_encode_encrypt_db
+from submission.src import server_preprocess_dataset
+from submission.src import client_preprocess_query
+from submission.src import client_encode_encrypt_query
+from submission.src import server_encrypted_compute
+from submission.src import client_decrypt_decode
+from submission.src import client_postprocess
+
+
 def main():
     """
     Run the entire submission process, from build to verify
@@ -26,8 +38,6 @@ def main():
                         help='Number of times to run steps 4-9 (default: 1)')
     parser.add_argument('--seed', type=int,
                         help='Random seed for dataset and query generation')
-    parser.add_argument('--count_only', action='store_true',
-                        help='Only count # of matches, do not return payloads')
     parser.add_argument('--phone_number', type=str,
                         help='Phone number to search for')
 
@@ -51,10 +61,6 @@ def main():
     exec_dir = params.rootdir/"submission"/"build"
 
     print(f"\n[harness] Running submission for {instance_name(size)} dataset")
-    if args.count_only:
-        print("          only counting matches")
-    else:
-        print("          returning matching payloads")
 
     # 0. Generate the dataset (and centers) using harness/generate_dataset.py
 
@@ -78,21 +84,18 @@ def main():
     utils.log_step(1, "Dataset generation")
 
     # 2. Client-side: Preprocess the dataset using exec_dir/client_preprocess_dataset
-    subprocess.run([exec_dir/"client_preprocess_dataset", str(size)], check=True)
+    client_preprocess_dataset.main()
     utils.log_step(2, "Dataset preprocessing")
 
     # 3. Client-side: Generate the cryptographic keys 
     # Note: this does not use the rng seed above, it lets the implementation
     #   handle its own prg needs. It means that even if called with the same
     #   seed multiple times, the keys and ciphertexts will still be different.
-    cmd = [exec_dir/"client_key_generation", str(size)]
-    if args.count_only:
-        cmd.extend(["--count_only"])
-    subprocess.run(cmd, check=True)
+    client_key_generation.main()
     utils.log_step(3, "Key Generation")
 
     # 4. Client-side: Encode and encrypt the dataset
-    subprocess.run([exec_dir/"client_encode_encrypt_db", str(size)], check=True)
+    client_encode_encrypt_db.main()
     utils.log_step(4, "Dataset encoding and encryption")
 
     # Report size of keys and encrypted data
@@ -100,7 +103,7 @@ def main():
     utils.log_size(io_dir / "encrypted", "Encrypted database")
 
     # 5. Server-side: Preprocess the encrypted dataset using exec_dir/server_preprocess_dataset
-    subprocess.run([exec_dir/"server_preprocess_dataset", str(size)], check=True)
+    server_preprocess_dataset.main()
     utils.log_step(5, "Encrypted dataset preprocessing")
 
     # Run steps 6-11 multiple times if requested
@@ -120,33 +123,25 @@ def main():
         utils.log_step(6, "Query generation")
 
         # 7. Client-side: preprocess query
-        subprocess.run([exec_dir/"client_preprocess_query", str(size)], check=True)
+        client_preprocess_query.main()
         utils.log_step(7, "Query preprocessing")
 
         # 8. Client-side: Encrypt the query
-        subprocess.run([exec_dir/"client_encode_encrypt_query", str(size)], check=True)
+        client_encode_encrypt_query.main()
         utils.log_step(8, "Query encryption")
         utils.log_size(io_dir / "encrypted" / "query.bin" , "Encrypted query")
 
         # 9. Server-side: run exec_dir/server_encrypted_compute
-        cmd = [exec_dir/"server_encrypted_compute", str(size)]
-        if args.count_only:
-            cmd.extend(["--count_only"])
-        subprocess.run(cmd, check=True)
+        server_encrypted_compute.main()
         utils.log_step(9, "Encrypted computation")
 
         # 10. Client-side: decrypt and postprocess
-        subprocess.run([exec_dir/"client_decrypt_decode", str(size)], check=True)
-        cmd = [exec_dir/"client_postprocess", str(size)]
-        if args.count_only:
-            cmd.extend(["--count_only"])
-        subprocess.run(cmd, check=True)
+        client_decrypt_decode.main()
+        client_postprocess.main()
         utils.log_step(10, "Result decryption and postprocessing")
 
         # 11. Run the plaintext processing in cleartext_impl.py and verify_results
         cmd = ["python3", harness_dir/"cleartext_impl.py", str(size)]
-        if args.count_only:
-            cmd.extend(["--count_only"])
         subprocess.run(cmd, check=True)
 
         # 12. Verify results
@@ -159,8 +154,6 @@ def main():
 
         cmd = ["python3", harness_dir/"verify_result.py",
                str(expected_file), str(result_file)]
-        if args.count_only:
-            cmd.extend(["--count_only"])
         subprocess.run(cmd, check=False)
 
         # 13. Store measurements

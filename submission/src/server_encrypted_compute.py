@@ -5,10 +5,10 @@ server_encrypted_compute.py - Run homomorphic computation on Lattica server
 import sys
 import os
 
-from lib.constants import TOKEN
+from submission.src.lib.constants import TOKEN
 from lattica_query.worker_api import LatticaWorkerAPI
-from lib.server_logger import server_print
-from lib.server_timer import ServerTimer
+from submission.src.lib.server_logger import server_print
+from submission.src.lib.server_timer import ServerTimer
 
 def main():
     # Parse arguments

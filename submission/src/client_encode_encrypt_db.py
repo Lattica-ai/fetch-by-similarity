@@ -10,10 +10,10 @@ import numpy as np
 import torch
 import zipfile
 
-from lib.constants import TOKEN
-from lib.server_logger import server_print
-from lib.server_timer import ServerTimer
-from lib.similarity_upload import SimilarityUploader
+from submission.src.lib.constants import TOKEN
+from submission.src.lib.server_logger import server_print
+from submission.src.lib.server_timer import ServerTimer
+from submission.src.lib.similarity_upload import SimilarityUploader
 from lattica_query.serialization.api_serialization_utils import dumps_proto_tensor
 import lattica_query.query_toolkit as toolkit_interface
 
