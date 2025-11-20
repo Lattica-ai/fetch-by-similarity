@@ -15,82 +15,97 @@ pip3 install -r requirements.txt
 
 ## Running the fetch-by-similarity workload
 
+Configure your Lattica access token `TOKEN` in the file `submission/src/lib/constants.py`.
+
 An example run is provided below.
 
 ```console
 $ python3 harness/run_submission.py -h
-usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--count_only] {0,1,2,3}
+usage: ./run_pip [-h] [--phone_number] [--num_runs NUM_RUNS] [--seed SEED]
 
 Run the fetch-by-similarity FHE benchmark.
 
-positional arguments:
-  {0,1,2,3}            Instance size (0-toy/1-small/2-medium/3-large)
-
 options:
   -h, --help           show this help message and exit
+  --phone_number       Phone number to search for from contacts_db_1000.csv
   --num_runs NUM_RUNS  Number of times to run steps 4-9 (default: 1)
   --seed SEED          Random seed for dataset and query generation
-  --count_only         Only count # of matches, do not return payloads
-$
-$ python ./harness/run_submission.py 0 --seed 12345 --num_runs 2
--- The CXX compiler identification is GNU 13.3.0
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /usr/bin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
--- FOUND PACKAGE OpenFHE
--- OpenFHE Version: 1.3.0
--- OpenFHE installed as shared libraries: ON
--- OpenFHE include files location: /usr/local/include/openfhe
--- OpenFHE lib files location: /usr/local/lib
--- OpenFHE Native Backend size: 64
--- Configuring done (0.7s)
--- Generating done (0.0s)
--- Build files have been written to: [...]/fetch-by-similarity/submission/build
-[  4%] Building CXX object CMakeFiles/client_encode_encrypt_db.dir/src/client_encode_encrypt_db.cpp.o
-[...]
-[100%] Built target client_encode_encrypt_db
 
+$ ./run_pip --seed 12345 --num_runs 1 --phone_number 058-5827732
 [harness] Running submission for toy dataset
           returning matching payloads
-23:23:38 [harness] 1: Dataset generation completed (elapsed: 0.1021s)
-23:23:38 [harness] 2: Dataset preprocessing completed (elapsed: 0.0023s)
-23:23:38 [harness] 3: Key Generation completed (elapsed: 0.1167s)
-23:23:39 [harness] 4: Dataset encoding and encryption completed (elapsed: 1.0903s)
-         [harness] Public and evaluation keys size: 30.3M
-         [harness] Encrypted database size: 90.3M
-23:23:39 [harness] 5: Encrypted dataset preprocessing completed (elapsed: 0.0051s)
-
-         [harness] Run 1 of 2
-23:23:40 [harness] 6: Query generation completed (elapsed: 0.096s)
-23:23:40 [harness] 7: Query preprocessing completed (elapsed: 0.0022s)
-23:23:40 [harness] 8: Query encryption completed (elapsed: 0.0164s)
-         [harness] Encrypted query size: 389.1K
-23:23:40 [server] 0: Loading keys completed
-23:23:43 [server] 1: Matrix-vector product completed (elapsed 3s)
-23:23:43 [server] 2: Compare to threshold completed
-23:23:43 [server] 3: Running sums completed
-23:23:45 [server] 4: Output compression completed (elapsed 1s)
-23:23:45 [harness] 9: Encrypted computation completed (elapsed: 5.4183s)
-23:23:45 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0201s)
-         [harness] PASS (All 18 payload vectors match)
-[total latency] 6.8694s
-
-         [harness] Run 2 of 2
-23:23:45 [harness] 6: Query generation completed (elapsed: 0.4324s)
-23:23:45 [harness] 7: Query preprocessing completed (elapsed: 0.0033s)
-23:23:46 [harness] 8: Query encryption completed (elapsed: 0.035s)
-         [harness] Encrypted query size: 389.1K
-23:23:46 [server] 0: Loading keys completed
-23:23:53 [server] 1: Matrix-vector product completed (elapsed 7s)
-23:23:53 [server] 2: Compare to threshold completed
-23:23:53 [server] 3: Running sums completed
-23:23:55 [server] 4: Output compression completed (elapsed 1s)
-23:23:55 [harness] 9: Encrypted computation completed (elapsed: 9.5139s)
-23:23:55 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0198s)
-         [harness] PASS (All 11 payload vectors match)
-[total latency] 11.3208s
+11:38:08 [harness] 1: Dataset generation completed (elapsed: 0.1036s)
+11:38:08 [server] Database shape: (1000, 128) (128 vector dims
+11:38:08 [server] Extended payloads shape: (1000, 8) (8 payload values per record)
+11:38:08 [harness] 2: Dataset preprocessing completed (elapsed: 0.0815s)
+Retrieving user init data from worker...
+get_user_init_data timing: network;dur=1987, logic;dur=247, instance;dur=208, worker;dur=0
+Creating client FHE keys...
+AbstractEncryptionScheme::_sample_randomness
+AbstractEncryptionScheme::_sample_randomness
+Registering FHE evaluation key...
+Uploading evaluation key file 'io/toy/keys/evk.lpk' (15.9 MB) to server...
+Uploading file (15.9 MB)...
+pk io/toy/keys/evk.lpk uploaded status is Success.
+Calling to preprocess io/toy/keys/evk.lpk
+preprocess_pk: COMPLETED
+preprocess_pk timing: network;dur=760, logic;dur=415, instance;dur=406, worker;dur=286
+Evaluation key preprocessing on worker is complete.
+11:38:15 [server] Keys generated and saved to io/toy/keys/
+11:38:16 [harness] 3: Key Generation completed (elapsed: 8.0746s)
+11:38:17 [server] Loaded database with shape: torch.Size([1000, 128])
+11:38:17 [server] Loaded payloads with shape: torch.Size([1000, 8])
+Encrypting using custom state: db
+AbstractEncryptionScheme::_sample_randomness
+11:38:18 [server] Encrypted db size: 58958512 bytes
+11:38:18 [server] 4.11: Database encryption completed (elapsed 0.628s)
+Encrypting using custom state: payloads
+AbstractEncryptionScheme::_sample_randomness
+11:38:18 [server] Encrypted payloads size: 837204 bytes
+11:38:18 [server] 4.12: Payloads encryption completed (elapsed 0.043s)
+11:38:18 [server] db.bin & payloads.bin archive created successfully.
+11:38:18 [server] Uploading encrypted database & payloads from io/toy/encrypted/encrypted_data.zip...
+11:38:24 [server] 4.2: Database & payloads upload completed (elapsed 6.466s)
+11:38:24 [harness] 4: Dataset encoding and encryption completed (elapsed: 8.4208s)
+         [harness] Public and evaluation keys size: 17.0M
+         [harness] Encrypted database size: 57.0M
+11:38:25 [server] Loading database into worker...
+load_custom_encrypted_data: COMPLETED
+load_custom_encrypted_data timing: network;dur=1427, logic;dur=1017, instance;dur=1006, worker;dur=822
+11:38:27 [server] Database loaded into worker successfully!
+11:38:27 [harness] 5: Encrypted dataset preprocessing completed (elapsed: 2.5964s)
+         [harness] Selected phone number for query: 058-5827732 Jody D
+11:38:27 [harness] 6: Query generation completed (elapsed: 0.1432s)
+11:38:27 [harness] 7: Query preprocessing completed (elapsed: 0.0498s)
+11:38:28 [server] Loaded query with shape: torch.Size([128])
+11:38:28 [server] 8.1: Expand and reshape completed (elapsed 0.000s)
+11:38:28 [server] Encrypting query...
+AbstractEncryptionScheme::_sample_randomness
+11:38:28 [server] 8.2: Encrypt query completed (elapsed 0.030s)
+11:38:28 [server] Encrypted query saved to io/toy/encrypted/query.bin
+11:38:28 [harness] 8: Query encryption completed (elapsed: 1.1501s)
+         [harness] Encrypted query size: 256.1K
+11:38:29 [server] Loading encrypted query from io/toy/encrypted/query.bin
+11:38:29 [server] Initializing LatticaWorkerAPI...
+11:38:29 [server] Running homomorphic computation on Lattica server...
+ct size: 0.3MB
+apply_hom_pipeline timing: network;dur=1258, logic;dur=429, instance;dur=406, worker;dur=324
+11:38:30 [server] 9.1: Homomorphic computation completed (elapsed 1.260s)
+11:38:30 [server] Encrypted results saved to io/toy/encrypted/results.bin
+11:38:31 [harness] 9: Encrypted computation completed (elapsed: 2.3588s)
+11:38:32 [server] Loading encrypted results from io/toy/encrypted/results.bin
+11:38:32 [server] Decrypting results...
+11:38:32 [server] 10.1: Decrypt results completed (elapsed 0.057s)
+11:38:32 [server] Converting decrypted result to tensor...
+11:38:32 [server] Result shape: torch.Size([512]) and dtype: torch.float64
+11:38:32 [server] Final result array shape: (512,) and dtype: float64
+11:38:32 [server] Raw results saved to io/toy/raw-result.bin
+11:38:33 [server] Loaded raw_results: shape: torch.Size([512]), dtype: torch.float64
+11:38:33 [server] results shape: torch.Size([1, 8])
+11:38:33 [server] 10.2: Postprocessing completed (elapsed 0.001s)
+11:38:33 [harness] 10: Result decryption and postprocessing completed (elapsed: 2.5542s)
+         [harness] Retrieved caller ID: Jody D
+[total latency] 25.5329s
 
 All steps completed for the toy dataset!
 ```
@@ -131,13 +146,8 @@ The typical usage flow is:
 
 `clone → configure license/token → install requirements → run_submission.py`
 
-A single command:
 
-```bash
-python harness/run_submission.py 0 --seed 12345 --num_runs 1
-```
-
-executes the complete encrypted search pipeline:
+The workflow executes the complete encrypted search pipeline:
 
 1. Build and setup
 Performed automatically on the first run (compilation, internal initialization, etc.).
@@ -145,15 +155,14 @@ Performed automatically on the first run (compilation, internal initialization, 
 2. Create a set of private and evaluation keys
 
 3. Create a vectorized database
-The demo uses a synthetic dataset of 1,000 (phone, name) pairs defined in submission/src/lib/constants.py.
-Each (phone, name) entry is converted into one or more embedding vectors and auxiliary features suitable for similarity search.
+The demo uses a synthetic dataset of 1,000 (phone, name) pairs defined in `contacts_db_1000.csv`.
+Each entry is converted into an embedding vector of features suitable for similarity search.
 
 4. Encrypt the vectorized DB and upload it
 The client side encrypts the vectorized database and uploads the ciphertexts, together with evaluation keys, to Lattica’s server.
 
-5. Automatically choose a query phone number
-The script automatically selects one of the 1,000 phone numbers from the dataset as the search target
-(the user does not manually enter the number).
+5. Select a phone number to search for:
+If `--phone_number` is provided, that number is used; otherwise, a random number from the dataset is chosen with probability 50%, or a random non-existing number with probability 50%.
 
 6. Create and encrypt the query embedding
 A query embedding is built for the chosen number and encrypted locally.
