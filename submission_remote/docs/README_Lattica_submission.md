@@ -40,13 +40,13 @@ The submission uses the following parameters:
 
 * **Ring dimension:** 2**16 = 65536
 * **Total modulus size:** ~1059 bits (693 compute levels + 366 GHS)
-* **Secret key distribution:** sparse ternary, Hamming weight 64
+* **Secret key distribution:** sparse ternary, Hamming weight 192
 
 Security estimate yields approximately 189 bits of security, exceeding standard 128-bit targets:
 ```python
 from estimator import *
 Logging.set_level(Logging.LEVEL0)
-params = LWE.Parameters(n=2**16, q=2**1059, Xs=ND.SparseTernary(32), Xe=ND.DiscreteGaussian(1))
+params = LWE.Parameters(n=2**16, q=2**1059, Xs=ND.SparseTernary(96), Xe=ND.DiscreteGaussian(1))
 LWE.estimate.rough(params)
 ```
 
@@ -134,58 +134,62 @@ The pipeline carefully controls scale growth and modulus switching to maintain p
 ## Example execution
 
 ```
+python3 harness/run_submission.py 1 --num_runs 3 --remote
 
 [harness] Running submission for small dataset
           returning matching payloads
-09:23:58 [harness] 1: Dataset generation completed (elapsed: 0.3254s)
-09:24:16 [harness] 1.1: Communication: Get cryptographic context completed (elapsed: 17.9993s)
-09:24:18 [harness] 2: Dataset preprocessing completed (elapsed: 1.0297s)
-09:24:28 [harness] 3: Key Generation completed (elapsed: 10.1093s)
+02:44:02 [harness] 1: Dataset generation completed (elapsed: 0.3616s)
+02:44:20 [harness] 1.1: Communication: Get cryptographic context completed (elapsed: 18.1967s)
+02:44:21 [harness] 2: Dataset preprocessing completed (elapsed: 1.1344s)
+02:44:33 [harness] 3: Key Generation completed (elapsed: 12.3906s)
          [harness] Public and evaluation keys size: 1.1G
-09:26:45 [harness] 3.1: Communication: Upload evaluation key completed (elapsed: 137.1794s)
-09:27:13 [harness] 4: Dataset encoding and encryption completed (elapsed: 28.3497s)
+02:47:06 [harness] 3.1: Communication: Upload evaluation key completed (elapsed: 152.5218s)
+02:47:45 [harness] 4: Dataset encoding and encryption completed (elapsed: 38.6732s)
          [harness] Encrypted database size: 2.8G
-09:33:06 [harness] 4.1: Communication: Upload encrypted database completed (elapsed: 352.8103s)
-09:33:06 [harness] 5: Encrypted dataset preprocessing completed (elapsed: 0.0002s)
+02:54:35 [harness] 4.1: Communication: Upload encrypted database completed (elapsed: 410.5124s)
+02:54:35 [harness] 5: Encrypted dataset preprocessing completed (elapsed: 0.0002s)
 
          [harness] Run 1 of 3
-09:33:06 [harness] 6: Query generation completed (elapsed: 0.0889s)
-09:33:06 [harness] 7: Query preprocessing completed (elapsed: 0.0001s)
-09:33:07 [harness] 8: Query encryption completed (elapsed: 1.2876s)
+02:54:35 [harness] 6: Query generation completed (elapsed: 0.112s)
+02:54:35 [harness] 7: Query preprocessing completed (elapsed: 0.0001s)
+02:54:37 [harness] 8: Query encryption completed (elapsed: 1.6369s)
          [harness] Encrypted query size: 12.0M
-09:33:21 [harness] 9: Encrypted computation completed (elapsed: 13.4931s)
-09:33:23 [harness] 10: Result decryption and postprocessing completed (elapsed: 2.2252s)
-         [harness] PASS (All 14 payload vectors match)
-         [submission] GPU time: 1.038s
-         [submission] Queue time: 0.183s
-         [submission] Network time: 11.249s
-[total latency] 564.8982s
+02:54:45 [harness] 9: Encrypted computation completed (elapsed: 8.527s)
+02:54:48 [harness] 10: Result decryption and postprocessing completed (elapsed: 2.8068s)
+         [harness] PASS (All 16 payload vectors match)
+         [submission] Encrypted computation: 0.817s
+         [submission] Backend overhead: 0.133s
+         [submission] Upload time: 1.863s
+         [submission] Download time: 4.561s
+[total latency] 646.8738s
 
          [harness] Run 2 of 3
-09:33:23 [harness] 6: Query generation completed (elapsed: 0.269s)
-09:33:23 [harness] 7: Query preprocessing completed (elapsed: 0.0001s)
-09:33:25 [harness] 8: Query encryption completed (elapsed: 1.2694s)
+02:54:49 [harness] 6: Query generation completed (elapsed: 0.3198s)
+02:54:49 [harness] 7: Query preprocessing completed (elapsed: 0.0002s)
+02:54:50 [harness] 8: Query encryption completed (elapsed: 1.6086s)
          [harness] Encrypted query size: 12.0M
-09:33:39 [harness] 9: Encrypted computation completed (elapsed: 14.1897s)
-09:33:41 [harness] 10: Result decryption and postprocessing completed (elapsed: 2.2588s)
+02:54:59 [harness] 9: Encrypted computation completed (elapsed: 8.777s)
+02:55:02 [harness] 10: Result decryption and postprocessing completed (elapsed: 2.6745s)
          [harness] PASS (All 0 payload vectors match)
-         [submission] GPU time: 1.039s
-         [submission] Queue time: 0.174s
-         [submission] Network time: 11.988s
-[total latency] 565.7903s
+         [submission] Encrypted computation: 0.816s
+         [submission] Backend overhead: 0.185s
+         [submission] Upload time: 1.852s
+         [submission] Download time: 4.799s
+[total latency] 647.171s
 
          [harness] Run 3 of 3
-09:33:41 [harness] 6: Query generation completed (elapsed: 0.295s)
-09:33:41 [harness] 7: Query preprocessing completed (elapsed: 0.0001s)
-09:33:43 [harness] 8: Query encryption completed (elapsed: 1.2619s)
+02:55:02 [harness] 6: Query generation completed (elapsed: 0.3379s)
+02:55:02 [harness] 7: Query preprocessing completed (elapsed: 0.0002s)
+02:55:04 [harness] 8: Query encryption completed (elapsed: 1.589s)
          [harness] Encrypted query size: 12.0M
-09:33:59 [harness] 9: Encrypted computation completed (elapsed: 16.2125s)
-09:34:01 [harness] 10: Result decryption and postprocessing completed (elapsed: 2.2884s)
+02:55:18 [harness] 9: Encrypted computation completed (elapsed: 14.0674s)
+02:55:21 [harness] 10: Result decryption and postprocessing completed (elapsed: 2.9653s)
          [harness] PASS (All 13 payload vectors match)
-         [submission] GPU time: 1.04s
-         [submission] Queue time: 0.181s
-         [submission] Network time: 14.023s
-[total latency] 567.8613s
+         [submission] Encrypted computation: 0.817s
+         [submission] Backend overhead: 0.144s
+         [submission] Upload time: 4.777s
+         [submission] Download time: 7.186s
+[total latency] 652.7508s
 
 All steps completed for the small dataset!
 ```
@@ -195,39 +199,39 @@ All steps completed for the small dataset!
 * Evaluation key: ~1.1 GB
 * Encrypted database: ~2.8 GB
 * Encrypted query: ~12 MB
-* Total inference time: 14.1897 s (**includes network time over WAN**)
-* Compute inference time: 1.039 s (**compute time only**)
+* Total inference time: ~8 s (**includes network time over WAN**)
+* Compute inference time: 0.82 s (**compute time only**)
 
 
 ### Homomorphic computation time breakdown
 
-![nsight_cosine_small_20260202.png](imgs/nsight_cosine_small_20260202.png)
+![nsight_cosine_small_20260212.png](imgs/nsight_cosine_small_20260212.png)
 
 * Expand: 306 ms
-* Inner product: 50 ms
-* Cheb threshold: 73 ms
+* Inner product: 49 ms
+* Cheb threshold: 69 ms
 * Running_sum: 21 ms
 * Mul selectors X running_sum: 7 ms
-* Cheb masks: 241 ms
+* Cheb masks: 200 ms
 * Extract and pack payloads: 200 ms
 
-**Total encrypted compute time:** ~0.903 seconds
+**Total encrypted compute time:** ~0.854 seconds
 
 ## Comparative reference
 
 Relative to the reference OpenFHE implementation provided with the benchmark suite:
 
-| **Stage** | **Lattica**                  | **OpenFHE**            |
-| --- |------------------------------|------------------------|
-| **Key Generation** | 10.1093 s                    | 8.11 s                 |
-| **DB encryption** | 28.3497 s                    | 102.93 s               |
-| **Encrypted computation** | 1.04 s (13.49 s  end-to-end) | 125.75 s |
-| **Public & evaluation keys** | 1.1 G                        | 2.4 G                  |
-| **Encrypted database** | 2.8 G                        | 5.6G                   |
-| **Encrypted query** | 12 M                         | 24M                    |
+| **Stage** | **Lattica**                | **OpenFHE** |
+| --- |----------------------------|-------------|
+| **Key Generation** | 7.3 s                      | 8.1 s       |
+| **DB encryption** | 28.4 s                     | 102.9 s     |
+| **Encrypted computation** | 0.82 s (8.5 s  end-to-end) | 125.8 s     |
+| **Public & evaluation keys** | 1.1 G                      | 2.4 G       |
+| **Encrypted database** | 2.8 G                      | 5.6G        |
+| **Encrypted query** | 12 M                       | 24M         |
 
 
-* Encrypted computation is approximately **125x faster**.
+* Encrypted computation is approximately **150x faster**.
 * Ciphertext sizes (keys, database, query) are **2x smaller**.
 
 All comparisons are performed at comparable security levels.
