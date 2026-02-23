@@ -28,7 +28,7 @@ class InstanceParams(HarnessInstanceParams):
         self.n_slots = 2**9 if self.size == 0 else 2**15
         self.n_cols  = self.n_slots // 64
         self.count_only = len(argv) > 2 and argv[2] == "--count_only"
-        self.name = instance_name(self.size)
+        self.name = instance_name(self.size, self.count_only)
         self.payload_dim = PAYLOAD_DIM
 
 class LocalFilePaths:
@@ -69,18 +69,3 @@ class LocalFilePaths:
 def get_lattica_client(local_file_paths):
     access_token = pickle.load(open(local_file_paths.PATH_ACCESS_TOKEN, "rb"))
     return QueryClient(access_token)
-
-
-class StdoutListener(io.TextIOBase):
-    def __init__(self, target):
-        self.target = target
-        self.saved_report = None
-
-    def write(self, s):
-        if s.startswith(self.target):
-            s = s[len(self.target):].strip()
-            # s is in the format "network;dur=2807, logic;dur=339, instance;dur=306, worker;dur=219"
-            self.saved_report = {
-                part.split(";")[0].strip(): int(part.split("dur=")[1])
-                for part in s.split(",")
-            }
