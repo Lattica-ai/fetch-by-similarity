@@ -21,8 +21,8 @@ The submission evaluates encrypted similarity queries against a fixed encrypted 
 
 **Client**
 
-* aws c5.4xlarge
-* 16vCPUs, 32GB RAM
+* AWS c5.4xlarge
+* 16 vCPUs, 32GB RAM
 
 **Server**
 
@@ -134,7 +134,7 @@ The pipeline carefully controls scale growth and modulus switching to maintain p
 * Evaluation key: ~1.1 GB
 * Encrypted database: ~2.8 GB
 * Encrypted query: ~12 MB
-* Total inference time: ~8 s (**includes network time over WAN**)
+* Total inference time: ~1.2 s (**includes network time**)
 * Compute inference time: 0.82 s (**compute time only**)
 
 
@@ -160,7 +160,7 @@ Relative to the reference OpenFHE implementation provided with the benchmark sui
 | --- |----------------------------|-------------|
 | **Key Generation** | 20.8 s                      | 8.1 s       |
 | **DB encryption** | 54.4 s                     | 102.9 s     |
-| **Encrypted computation** | 0.82 s (2.7 s  end-to-end) | 125.8 s     |
+| **Encrypted computation** | 0.82 s (1.2 s  end-to-end) | 125.8 s     |
 | **Public & evaluation keys** | 1.1 G                      | 2.4 G       |
 | **Encrypted database** | 2.8 G                      | 5.6G        |
 | **Encrypted query** | 12 M                       | 24M         |
