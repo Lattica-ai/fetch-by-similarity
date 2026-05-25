@@ -25,7 +25,7 @@ class InstanceParams(HarnessInstanceParams):
         self.size = int(argv[1])
         super().__init__(self.size)
         self.n_slots = 2**9 if self.size == 0 else 2**15
-        self.n_cols  = self.n_slots // 64
+        self.n_cols  = self.n_slots // 64 if self.size == 0 else self.n_slots // 32
         self.count_only = len(argv) > 2 and argv[2] == "--count_only"
         self.name = instance_name(self.size, self.count_only)
         self.payload_dim = PAYLOAD_DIM
@@ -47,7 +47,7 @@ class LocalFilePaths:
         self.PATH_ACCESS_TOKEN      = IO_DIR / "access_token.pkl"
         self.PATH_SK                = IO_DIR / "sk.pkl"
         self.PK_DIR                 = IO_DIR / "keys"
-        self.CT_UPLOAD_DIR          = IO_DIR / "encrypted"
+        self.CT_UPLOAD_DIR          = IO_DIR / "ciphertexts_upload"
         self.CT_DOWNLOAD_DIR        = IO_DIR / "ciphertexts_download"
         self.PATH_RAW_RESULT        = IO_DIR / "raw_result.pkl"
         self.PREDICTIONS_PATH       = IO_DIR / "results.bin"
