@@ -14,7 +14,7 @@ def _extract_final_results(a):
     a = a.reshape(-1, full_payload_dim, instance_params.n_cols).moveaxis(-1, -2).reshape(-1, full_payload_dim)
     # Create a mask for rows that have any nonzero element
     max_val = PAYLOAD_MAX / PAYLOAD_PRECISION
-    valid_rows_mask = a[:, 0] > max_val * 1.4  # the marker row is expected to be 2 * MAX_VAL
+    valid_rows_mask = a[:, 0] > max_val * 1.4  # the marker row is expected to be 2 * max_val
     a = a[valid_rows_mask]
     scale = 2 * PAYLOAD_MAX / a[:, 0]  # scale each row by the expected marker value
     a = (a * scale[:, None]).round().to(torch.int16).numpy()
