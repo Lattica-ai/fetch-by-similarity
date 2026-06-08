@@ -21,8 +21,6 @@ secret_key = pickle.load(open(local_file_paths.PATH_SK,      "rb"))
 # Read the query vector
 query_tensor = torch.from_numpy(np.fromfile(local_file_paths.QUERY_PATH, dtype=np.float32))
 # Pad the query to match the number of slots and encrypt
-query_tensor = query_tensor.expand(
-    instance_params.n_slots // record_dim, record_dim).reshape(instance_params.n_slots)
 ct = toolkit_interface.enc(
     context,
     secret_key,
