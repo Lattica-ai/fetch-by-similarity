@@ -1,6 +1,6 @@
 import pickle
 import sys
-from submission_utils import PAYLOAD_MAX, PAYLOAD_PRECISION
+from submission_utils import N_COLS, PAYLOAD_MAX, PAYLOAD_PRECISION
 
 import submission_utils
 import numpy as np
@@ -11,7 +11,7 @@ local_file_paths, instance_params = submission_utils.init(sys.argv)
 
 def _extract_final_results(a):
     full_payload_dim = instance_params.payload_dim + 1
-    a = a.reshape(-1, full_payload_dim, instance_params.n_cols).moveaxis(-1, -2).reshape(-1, full_payload_dim)
+    a = a.reshape(-1, full_payload_dim, N_COLS).moveaxis(-1, -2).reshape(-1, full_payload_dim)
     # Create a mask for rows that have any nonzero element
     max_val = PAYLOAD_MAX / PAYLOAD_PRECISION
     valid_rows_mask = a[:, 0] > max_val * 1.4  # the marker row is expected to be 2 * MAX_VAL

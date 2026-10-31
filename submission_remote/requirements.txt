@@ -1,1 +1,1 @@
-lattica-query>=1.5.0
+lattica-query>=2.12.0

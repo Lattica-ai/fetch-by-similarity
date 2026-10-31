@@ -2,22 +2,16 @@ import sys
 import pickle
 
 import submission_utils
-from lattica_query.auth import get_demo_token
 
-local_file_paths, instance_params = submission_utils.init(sys.argv)
+local_file_paths, _ = submission_utils.init(sys.argv)
 
-if instance_params.size == 0:
-    # Get access_token for public model
-    access_token = get_demo_token("similarityFetchToy")
-    pickle.dump(access_token, open(local_file_paths.PATH_ACCESS_TOKEN, "wb"))
-else:
-    raise ValueError("Submission is publicly available only for SIZE=0, for other sizes please contact hello@lattica.ai.")
+# Get access_token for public model
+access_token = submission_utils.get_demo_token(submission_utils.MODEL_ID)
+pickle.dump(access_token, open(local_file_paths.PATH_ACCESS_TOKEN, "wb"))
 
-
-# Get encryption params and model metadata from BE
-client = submission_utils.get_lattica_client(local_file_paths)
-context, hom_seq = client.get_init_data()
+# Get the model's cryptographic context and client model from the backend
+with submission_utils.get_lattica_client(local_file_paths) as client:
+    init_data = client.keys.fetch_initialization()
 
 # Save data to local file system
-pickle.dump(context, open(local_file_paths.PATH_CONTEXT, "wb"))
-pickle.dump(hom_seq, open(local_file_paths.PATH_HOM_SEQ, "wb"))
+pickle.dump(init_data, open(local_file_paths.PATH_INITIALIZATION, "wb"))
