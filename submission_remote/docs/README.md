@@ -1,40 +1,130 @@
-# Remote Submission Example
+# Lattica Fetch-by-Similarity Submission
 
-This directory contains a remote submission example for the benchmarking suite.
+This document describes Lattica's submission to the Fetch-by-Similarity FHE benchmarking workload.
 
-As part of the benchmarking process, all remote backends are expected to make their homomorphic encryption parameters explicit and reviewable, since these parameters directly affect security, performance, and comparability across submissions. Ideally, such parameters should be reported automatically by the backend.
-
-This document provides a static description of the homomorphic encryption parameters used by this example backend, along with a minimal execution trace to illustrate end-to-end operation.
-
-Additional details that can be provided include things like workload structure, level consumption, scale management, parameterization at higher security levels and performance characteristics. You can see an example of such details (for the Lattica submission) at [README_Lattica_submission.md](https://github.com/Lattica-ai/fetch-by-similarity/blob/public_submission/submission_remote/docs/README_Lattica_submission.md).
+In this doc we provide a description of the workload structure, cryptographic parameterization, level and scale management, and performance characteristics of the submission. Unless stated otherwise, the data reported here corresponds to an end-to-end execution of the harness.
 
 ---
 
-## FHE parameters
+## Database Configuration
 
-The example backend runs the SMALL instance (size 1: 50,000 records of dimension 128), with the following homomorphic encryption parameters:
+* **Mode:** SMALL
+* **Database size:** 50,000 records
+* **Record dimension:** 128
+* **Payload dimension:** 7
 
+The submission evaluates encrypted similarity queries against a fixed encrypted database and returns matching payloads.
+
+---
+
+## Execution environment
+
+**Client**
+
+* A laptop outside AWS
+* 20 CPU threads, 32GB RAM
+
+**Server**
+
+* AWS EC2 g7e.2xlarge
+* NVIDIA GB202 (96 GB)
+* 8 vCPUs, 64 GB RAM
+
+The client reaches the server over the public internet, so the communication steps and the end-to-end times below include that network.
+
+---
+
+## Cryptographic parameters and security
+
+The submission uses the following parameters:
+
+* **Ring dimension:** 2**16 = 65536
+* **Total modulus size:** ~725 bits (420 compute levels + 305 GHS)
+* **Secret key distribution:** sparse ternary, Hamming weight 1024
+
+The previous parameter set of this submission (modulus of ~845 bits, Hamming weight 192) was estimated at approximately 256 bits of security. This one keeps the ring dimension, with a smaller modulus and a denser secret key, so its estimate is not lower, exceeding standard 128-bit targets. The estimate can be reproduced with:
 ```python
-homomorphic_params = {
-    "q_bits": 786,        # 481 compute (14 levels in 8 rows of ~60 bits) + 305 GHS (5 special primes of 61 bits)
-    "n": 2 ** 16,         # polynomial degree
-    "err_std": 3.19,      # standard deviation of the encryption noise
-    "sk_hw": 192,         # secret key Hamming weight
-}
+from estimator import *
+Logging.set_level(Logging.LEVEL0)
+params = LWE.Parameters(n=2**16, q=2**725, Xs=ND.SparseTernary(512), Xe=ND.DiscreteGaussian(3))
+LWE.estimate.rough(params)
 ```
-
-These parameters target at least 128-bit security.
-
-
-
 ---
 
-## Example execution
+## Pipeline levels breakdown
 
-The remote backend serves only the small instance:
+### 2D moduli chain
 
+We are using a technique that we call a *2D modulus chain*, which allows us to decouple optimizations related to plaintext scaling via mod-switching, and optimizations related to the machine register size.
+
+Each ROW of the our 2D chain is a single int64 number, which is the product of one or more “good” primes. Conceptually, each element in the 2D chain can be consumed as a level (in the context of mod-switching), so the overall number of levels is the sum of number of COLs in each ROW. However, the size and computational overhead grows with the number of ROWS rather than with the number of levels.
+
+### Query rotations in groups
+The db holds each record's 64 complex-packed features in 4 groups of 16. The backend takes 16 rotations of the query (the unrotated one included), multiplies each group by them and sums, then rotates the 4 group sums into place. The rotations consume no level.
+
+### Moduli chain structure
+```python
+full_q_list_precision=(
+                    (60, 30),  # inner product, chebyshev threshold
+                    (60, 30),  # chebyshev threshold
+                    (60, 30),  # chebyshev threshold, running sum
+                    (60, 30),  # running_sum * selectors, indicator
+                    (60, 30),  # indicator
+                    (60, 30),  # indicator, one_hots * payloads
+                    (60,),     # payloads * packing mask
+                ),
+query_baby_steps        = 16               # query rotations per db group
+stage_sizes_running_sum = [8, 4]           # prod should be 32
+ghs_keyswtich_scale     = 5*(61,)          # scale-up by additional 305 bits
+
+input_pt_scale    = 2**30
 ```
-python3 harness/run_submission.py 1 --num_runs 3 --remote
-```
 
-The harness gets a token for the public model and its cryptographic context, generates the keys locally and uploads the evaluation key and the encrypted database once. Each query is then encrypted locally, run on the backend and decrypted locally.
+### Scale management and level consumption
+The pipeline carefully controls scale growth and modulus switching to maintain precision throughout the computation. Key properties include:
+
+* The running sum's two stages share one 30-bit prime, with their masks encoded at a scale of 2**15.
+* The last multiplication, payloads by the packing mask, is not followed by a modulus switch: the two scales share the last prime.
+
+
+## Performance characteristics
+
+* Evaluation key: 360 MB (439 MB with the context, the client model and the secret key)
+* Encrypted database: 482 MB
+* Encrypted query: 3.5 MB
+* Encrypted result: 1.0 MB
+* Total inference time: 4 - 13 s (**includes network time**, of which 1 - 2.7 s on the backend)
+* Compute inference time: 10.2 ms (**compute time only**)
+
+
+### Homomorphic computation time breakdown
+
+Not from the harness: the pipeline's operations timed one by one, with a synchronization after each, on an NVIDIA RTX PRO 6000 (96 GB). Run this way the pipeline takes 13.1 ms; the backend runs it as one CUDA graph, in 10.2 ms.
+
+* Query rotations: 1.6 ms
+* Inner product: 2.6 ms
+* Cheb threshold: 2.6 ms
+* Running_sum: 1.1 ms
+* Mul selectors X running_sum: 0.3 ms
+* Indicator masks: 1.9 ms
+* Extract and pack payloads: 3.0 ms
+
+## Comparative reference
+
+Relative to the reference OpenFHE implementation provided with the benchmark suite, as measured in the suite's repository (`measurements/small`):
+
+| **Stage** | **Lattica**                    | **OpenFHE** |
+| --- |--------------------------------|-------------|
+| **Key Generation** | 3.7 s                          | 3.9 s       |
+| **DB encryption** | 5.5 s                          | 32.8 s      |
+| **Encrypted computation** | 0.010 s (4 - 13 s  end-to-end) | 76.2 s      |
+| **Public & evaluation keys** | 0.44 G                         | 2.4 G       |
+| **Encrypted database** | 0.48 G                         | 5.6G        |
+| **Encrypted query** | 3.5 M                          | 24M         |
+
+
+* Encrypted computation is approximately **7,500x faster**.
+* Ciphertext sizes (query, keys, database) are **7x, 5.6x, 12x smaller**, respectively.
+
+All comparisons are performed at comparable security levels.
+
