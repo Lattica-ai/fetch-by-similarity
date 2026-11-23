@@ -16,10 +16,10 @@ The example backend runs the SMALL instance (size 1: 50,000 records of dimension
 
 ```python
 homomorphic_params = {
-    "q_bits": 786,        # 481 compute (14 levels in 8 rows of ~60 bits) + 305 GHS (5 special primes of 61 bits)
+    "q_bits": 725,        # 420 compute (13 levels in 7 rows of ~60 bits) + 305 GHS (5 special primes of 61 bits)
     "n": 2 ** 16,         # polynomial degree
     "err_std": 3.19,      # standard deviation of the encryption noise
-    "sk_hw": 192,         # secret key Hamming weight
+    "sk_hw": 1024,        # secret key Hamming weight
 }
 ```
 
