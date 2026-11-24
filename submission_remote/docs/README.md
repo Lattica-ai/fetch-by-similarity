@@ -42,13 +42,8 @@ The submission uses the following parameters:
 * **Total modulus size:** ~725 bits (420 compute levels + 305 GHS)
 * **Secret key distribution:** sparse ternary, Hamming weight 1024
 
-With this secret key distribution, the ring dimension supports a modulus of up to ~836 bits at the 128-bit security target. The ~725-bit modulus used here is below that bound: its lowest attack estimate is approximately 148 bits. A rough estimate can be reproduced with:
-```python
-from estimator import *
-Logging.set_level(Logging.LEVEL0)
-params = LWE.Parameters(n=2**15, q=2**725, Xs=ND.SparseTernary(512), Xe=ND.DiscreteGaussian(3))
-LWE.estimate.rough(params)
-```
+With this secret key distribution, the ring dimension supports a modulus of up to ~836 bits at the 128-bit security target. The ~725-bit modulus used here is below that bound: its lowest attack estimate is approximately 148 bits.
+
 ---
 
 ## Pipeline levels breakdown
@@ -94,20 +89,18 @@ The pipeline carefully controls scale growth and modulus switching to maintain p
 * Encrypted query: 1.8 MB
 * Encrypted result: 1.0 MB
 * Total inference time: 1.8 - 1.9 s (**includes network time**, of which 0.4 s on the backend)
-* Compute inference time: 7.5 ms (**compute time only**)
+* Compute inference time: 7.4 ms (**compute time only**)
 
 
 ### Homomorphic computation time breakdown
 
-Not from the harness: the pipeline's operations timed one by one, with a synchronization after each, on an NVIDIA RTX PRO 6000 (96 GB). Run this way the pipeline takes 11.2 ms; the backend runs it as one CUDA graph, in 7.5 ms.
-
-* Query rotations: 1.1 ms
-* Inner product: 2.5 ms
-* Cheb threshold: 2.7 ms
-* Running_sum: 1.1 ms
-* Mul selectors X running_sum: 0.3 ms
-* Indicator masks: 1.9 ms
-* Extract and pack payloads: 1.5 ms
+* Query rotations: 0.7 ms
+* Inner product: 1.7 ms
+* Cheb threshold: 1.8 ms
+* Running_sum: 0.7 ms
+* Mul selectors X running_sum: 0.2 ms
+* Indicator masks: 1.3 ms
+* Extract and pack payloads: 1.0 ms
 
 ## Comparative reference
 
@@ -117,7 +110,7 @@ Relative to the reference OpenFHE implementation provided with the benchmark sui
 | --- |--------------------------------|-------------|
 | **Key Generation** | 1.6 s                          | 3.9 s       |
 | **DB encryption** | 4.0 s                          | 32.8 s      |
-| **Encrypted computation** | 0.0075 s (1.8 - 1.9 s end-to-end) | 76.2 s      |
+| **Encrypted computation** | 0.0074 s (1.8 - 1.9 s end-to-end) | 76.2 s      |
 | **Public & evaluation keys** | 0.16 G                         | 2.4 G       |
 | **Encrypted database** | 0.47 G                         | 5.6G        |
 | **Encrypted query** | 1.8 M                          | 24M         |
