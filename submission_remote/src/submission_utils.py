@@ -26,7 +26,7 @@ TOKEN_MIN_VALIDITY = 24 * 3600   # seconds
 # constants used in pre and post processing
 PAYLOAD_PRECISION = 16
 PAYLOAD_MAX = 512
-INTERNAL_N = 2**15   # slots per ciphertext (N = 2^16)
+INTERNAL_N = 2**14   # slots per ciphertext (N = 2^15)
 N_COLS = 1024
 
 
@@ -74,6 +74,7 @@ class LocalFilePaths:
         self.PREDICTIONS_PATH       = IO_DIR / "results.bin"
         self.SERVER_TIMES_PATH      = IO_DIR / "server_reported_steps.json"
 
+        self.KEY_DIR.mkdir(parents=True, exist_ok=True)
         self.CT_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
         self.CT_DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
