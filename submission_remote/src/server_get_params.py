@@ -3,10 +3,10 @@ import pickle
 
 import submission_utils
 
-local_file_paths, _ = submission_utils.init(sys.argv)
+local_file_paths, instance_params = submission_utils.init(sys.argv)
 
 # Get access_token for public model
-access_token = submission_utils.get_demo_token(submission_utils.MODEL_ID)
+access_token = submission_utils.get_demo_token(instance_params.model_id)
 pickle.dump(access_token, open(local_file_paths.PATH_ACCESS_TOKEN, "wb"))
 
 # Get the model's cryptographic context and client model from the backend

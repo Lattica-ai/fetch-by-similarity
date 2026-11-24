@@ -11,16 +11,18 @@ from lattica_query import QueryClient, QueryToken
 from lattica_query.logging import QUERY_THEME
 from lattica_query.transport.backend import BackendAPI
 from lattica_query.transport.settings import ClientInfo
-from harness.params import InstanceParams as HarnessInstanceParams, instance_name, PAYLOAD_DIM, SMALL
+from harness.params import InstanceParams as HarnessInstanceParams, instance_name, PAYLOAD_DIM, SMALL, MEDIUM
 
-# The public model the remote backend runs, for the SMALL instance
-MODEL_ID = "similarityFetchSmall"
-# The model's query rotations per db group (see db_layout). None is full expansion.
-QUERY_BABY_STEPS = 16
+# Per instance size: the public model the remote backend runs, and the model's query rotations per db group
+# (see db_layout). None is full expansion.
+MODELS = {
+    SMALL: ("similarityFetchSmall", 16),
+    MEDIUM: ("similarityFetchMedium", None),
+}
 
-# Runs reuse one token, so each run replaces its key and db instead of adding new ones.
+# Runs reuse one token per model, so each run replaces its key and db instead of adding new ones.
 # A new token is fetched a day before it expires.
-TOKEN_PATH = Path(__file__).resolve().parent.parent / ".access_token"
+TOKEN_DIR = Path(__file__).resolve().parent.parent
 TOKEN_MIN_VALIDITY = 24 * 3600   # seconds
 
 # constants used in pre and post processing
@@ -45,9 +47,10 @@ def init(argv, mute_logs=True):
 class InstanceParams(HarnessInstanceParams):
     def __init__(self, argv):
         self.size = int(argv[1])
-        if self.size != SMALL:
-            raise ValueError(f"The remote backend serves only SIZE={SMALL} (small).")
+        if self.size not in MODELS:
+            raise ValueError(f"The remote backend serves only SIZE={SMALL} (small) and SIZE={MEDIUM} (medium).")
         super().__init__(self.size)
+        self.model_id, self.query_baby_steps = MODELS[self.size]
         self.count_only = len(argv) > 2 and argv[2] == "--count_only"
         self.name = instance_name(self.size, self.count_only)
         self.payload_dim = PAYLOAD_DIM
@@ -132,9 +135,10 @@ def _token_expiry(token):
     return json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))["exp"]
 
 def get_demo_token(model_id):
-    """A query token for a public model: the one at TOKEN_PATH, unless it expires within TOKEN_MIN_VALIDITY."""
-    if TOKEN_PATH.exists():
-        token = TOKEN_PATH.read_text()
+    """A query token for a public model: the cached one, unless it expires within TOKEN_MIN_VALIDITY."""
+    token_path = TOKEN_DIR / f".access_token_{model_id}"
+    if token_path.exists():
+        token = token_path.read_text()
         if _token_expiry(token) - time.time() > TOKEN_MIN_VALIDITY:
             return token
 
@@ -143,7 +147,7 @@ def get_demo_token(model_id):
             "modelId": model_id,
             "tokenName": f"fetch-by-similarity-{secrets.token_hex(4)}",
         })
-    TOKEN_PATH.write_text(response["token"])
+    token_path.write_text(response["token"])
     return response["token"]
 
 def get_lattica_client(local_file_paths):

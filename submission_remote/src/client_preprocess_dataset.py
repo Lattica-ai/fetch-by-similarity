@@ -19,7 +19,7 @@ payload_dim = instance_params.payload_dim
 # Read database vectors (float32)
 db = np.fromfile(local_file_paths.DB_PATH, dtype=np.float32)
 db = db.reshape((db_size, record_dim))
-db = submission_utils.db_layout(torch.from_numpy(db), submission_utils.QUERY_BABY_STEPS)
+db = submission_utils.db_layout(torch.from_numpy(db), instance_params.query_baby_steps)
 
 # Read payload vectors (int16)
 payloads = np.fromfile(local_file_paths.PAYLOAD_PATH, dtype=np.int16)
