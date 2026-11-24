@@ -38,15 +38,15 @@ The client reaches the server over the public internet, so the communication ste
 
 The submission uses the following parameters:
 
-* **Ring dimension:** 2**16 = 65536
+* **Ring dimension:** 2**15 = 32768
 * **Total modulus size:** ~725 bits (420 compute levels + 305 GHS)
 * **Secret key distribution:** sparse ternary, Hamming weight 1024
 
-The previous parameter set of this submission (modulus of ~845 bits, Hamming weight 192) was estimated at approximately 256 bits of security. This one keeps the ring dimension, with a smaller modulus and a denser secret key, so its estimate is not lower, exceeding standard 128-bit targets. The estimate can be reproduced with:
+With this secret key distribution, the ring dimension supports a modulus of up to ~836 bits at the 128-bit security target. The ~725-bit modulus used here is below that bound: its lowest attack estimate is approximately 148 bits. A rough estimate can be reproduced with:
 ```python
 from estimator import *
 Logging.set_level(Logging.LEVEL0)
-params = LWE.Parameters(n=2**16, q=2**725, Xs=ND.SparseTernary(512), Xe=ND.DiscreteGaussian(3))
+params = LWE.Parameters(n=2**15, q=2**725, Xs=ND.SparseTernary(512), Xe=ND.DiscreteGaussian(3))
 LWE.estimate.rough(params)
 ```
 ---
@@ -74,7 +74,7 @@ full_q_list_precision=(
                     (60,),     # payloads * packing mask
                 ),
 query_baby_steps        = 16               # query rotations per db group
-stage_sizes_running_sum = [8, 4]           # prod should be 32
+stage_sizes_running_sum = [4, 4]           # prod should be 16
 ghs_keyswtich_scale     = 5*(61,)          # scale-up by additional 305 bits
 
 input_pt_scale    = 2**30
@@ -89,25 +89,25 @@ The pipeline carefully controls scale growth and modulus switching to maintain p
 
 ## Performance characteristics
 
-* Evaluation key: 360 MB (439 MB with the context, the client model and the secret key)
-* Encrypted database: 482 MB
-* Encrypted query: 3.5 MB
+* Evaluation key: 156 MB
+* Encrypted database: 473 MB
+* Encrypted query: 1.8 MB
 * Encrypted result: 1.0 MB
 * Total inference time: 4 - 13 s (**includes network time**, of which 1 - 2.7 s on the backend)
-* Compute inference time: 10.2 ms (**compute time only**)
+* Compute inference time: 7.5 ms (**compute time only**)
 
 
 ### Homomorphic computation time breakdown
 
-Not from the harness: the pipeline's operations timed one by one, with a synchronization after each, on an NVIDIA RTX PRO 6000 (96 GB). Run this way the pipeline takes 13.1 ms; the backend runs it as one CUDA graph, in 10.2 ms.
+Not from the harness: the pipeline's operations timed one by one, with a synchronization after each, on an NVIDIA RTX PRO 6000 (96 GB). Run this way the pipeline takes 11.2 ms; the backend runs it as one CUDA graph, in 7.5 ms.
 
-* Query rotations: 1.6 ms
-* Inner product: 2.6 ms
-* Cheb threshold: 2.6 ms
+* Query rotations: 1.1 ms
+* Inner product: 2.5 ms
+* Cheb threshold: 2.7 ms
 * Running_sum: 1.1 ms
 * Mul selectors X running_sum: 0.3 ms
 * Indicator masks: 1.9 ms
-* Extract and pack payloads: 3.0 ms
+* Extract and pack payloads: 1.5 ms
 
 ## Comparative reference
 
@@ -115,16 +115,16 @@ Relative to the reference OpenFHE implementation provided with the benchmark sui
 
 | **Stage** | **Lattica**                    | **OpenFHE** |
 | --- |--------------------------------|-------------|
-| **Key Generation** | 3.7 s                          | 3.9 s       |
-| **DB encryption** | 5.5 s                          | 32.8 s      |
-| **Encrypted computation** | 0.010 s (4 - 13 s  end-to-end) | 76.2 s      |
-| **Public & evaluation keys** | 0.44 G                         | 2.4 G       |
-| **Encrypted database** | 0.48 G                         | 5.6G        |
-| **Encrypted query** | 3.5 M                          | 24M         |
+| **Key Generation** | 2.3 s                          | 3.9 s       |
+| **DB encryption** | 5.2 s                          | 32.8 s      |
+| **Encrypted computation** | 0.0075 s (4 - 13 s end-to-end) | 76.2 s      |
+| **Public & evaluation keys** | 0.16 G                         | 2.4 G       |
+| **Encrypted database** | 0.47 G                         | 5.6G        |
+| **Encrypted query** | 1.8 M                          | 24M         |
 
 
-* Encrypted computation is approximately **7,500x faster**.
-* Ciphertext sizes (query, keys, database) are **7x, 5.6x, 12x smaller**, respectively.
+* Encrypted computation is approximately **10,000x faster**.
+* Ciphertext sizes (query, keys, database) are **13x, 15x, 12x smaller**, respectively.
 
 All comparisons are performed at comparable security levels.
 
