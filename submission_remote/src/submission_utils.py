@@ -15,6 +15,8 @@ from harness.params import InstanceParams as HarnessInstanceParams, instance_nam
 
 # The public model the remote backend runs, for the SMALL instance
 MODEL_ID = "similarityFetchSmall"
+# The model's query rotations per db group (see db_layout). None is full expansion.
+QUERY_BABY_STEPS = 16
 
 # Runs reuse one token, so each run replaces its key and db instead of adding new ones.
 # A new token is fetched a day before it expires.
@@ -24,8 +26,8 @@ TOKEN_MIN_VALIDITY = 24 * 3600   # seconds
 # constants used in pre and post processing
 PAYLOAD_PRECISION = 16
 PAYLOAD_MAX = 512
-INTERNAL_N = 2**15   # slots per ciphertext (N = 2^16)
-N_COLS = 1024 
+INTERNAL_N = 2**14   # slots per ciphertext (N = 2^15)
+N_COLS = 1024
 
 
 def init(argv, mute_logs=True):
@@ -72,6 +74,7 @@ class LocalFilePaths:
         self.PREDICTIONS_PATH       = IO_DIR / "results.bin"
         self.SERVER_TIMES_PATH      = IO_DIR / "server_reported_steps.json"
 
+        self.KEY_DIR.mkdir(parents=True, exist_ok=True)
         self.CT_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
         self.CT_DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -94,14 +97,25 @@ def pad_to_blocks(x):
     padding = -x.shape[0] % INTERNAL_N
     return torch.nn.functional.pad(x, (0, 0, 0, padding)).view(-1, INTERNAL_N, x.shape[-1])
 
-def db_layout(db):
+def db_layout(db, baby_steps=None):
     """The db [db_size, D]: complex-packed, record i's features rotated by i (out[i, d] = x[i, (i + d) % D/2]),
-    padded to blocks of INTERNAL_N records, features first: [num_blocks, D/2, INTERNAL_N]. The backend multiplies
-    feature d by the query rotated by d."""
+    padded to blocks of INTERNAL_N records, features first, in G groups of B = baby_steps features:
+    [num_blocks, G, B, INTERNAL_N], group g rolled by g * B slots. The backend multiplies feature b of each group
+    by the query rotated by b, then rotates group g's sum back by g * B.
+
+    baby_steps=None is full query expansion: B = D/2, one group, no roll. A smaller divisor of D/2 is partial
+    expansion. It must be the model's query_baby_steps."""
     x = pack_complex(db)
     k = x.shape[-1]
+    baby_steps = k if baby_steps is None else baby_steps
+    if baby_steps < 1 or k % baby_steps or INTERNAL_N % k:
+        raise ValueError(f"baby_steps={baby_steps} must divide D/2={k}, which must divide {INTERNAL_N}")
     idx = (torch.arange(x.shape[0]).unsqueeze(1) + torch.arange(k)) % k
-    return pad_to_blocks(torch.gather(x, 1, idx)).transpose(1, 2).contiguous()
+    layout = pad_to_blocks(torch.gather(x, 1, idx)).transpose(1, 2).contiguous()
+    layout = layout.reshape(layout.shape[0], k // baby_steps, baby_steps, INTERNAL_N)
+    for group in range(1, k // baby_steps):
+        layout[:, group] = layout[:, group].roll(group * baby_steps, dims=-1)
+    return layout
 
 def query_layout(query):
     """The query [D]: complex-packed, conjugated and halved (the score is z + conj(z) for the inner product z),
@@ -137,12 +151,12 @@ def get_lattica_client(local_file_paths):
     return QueryClient(QueryToken(access_token))
 
 def server_timing_report(client):
-    """The server's timing of the client's last query, in seconds, in the harness's steps."""
+    """The server's timing of the client's last query, in seconds, in the harness's steps. The backend reports
+    logic > upload > worker > compute, each including the next; the client returns each one's own share."""
     components = client.query.last_server_timing
     report = {
-        "Encrypted computation": components.get("worker", 0),
-        "Backend overhead": components.get("instance", 0) + components.get("logic", 0),
-        "Upload time": components.get("upload", 0),
-        "Download time": components.get("download", 0),
+        "Encrypted computation": components.get("compute", 0),   # the homomorphic pipeline on the GPU
+        "Backend overhead": components.get("worker", 0) + components.get("logic", 0),
+        "Upload time": components.get("upload", 0),               # the query to the worker and the result back
     }
-    return {k: round(v, 3) for k, v in report.items()}
+    return {k: round(v, 4) for k, v in report.items()}

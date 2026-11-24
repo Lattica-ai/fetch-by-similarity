@@ -13,6 +13,6 @@ query = pickle.load(open(local_file_paths.PROCESSED_QUERY_PATH, "rb"))
 
 # Encrypt the query
 with submission_utils.get_lattica_client(local_file_paths) as client:
-    key = client.keys.load(local_file_paths.KEY_DIR)
+    key = client.keys.load()
     ct = client.query.encrypt(query, key=key)
 local_file_paths.get_ct_upload_path("query").write_bytes(ct)

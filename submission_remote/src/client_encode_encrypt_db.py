@@ -14,7 +14,7 @@ payload = pickle.load(open(local_file_paths.PROCESSED_PAYLOAD_PATH, "rb"))
 
 # Encrypt the db and the payloads, the model's custom inputs, into one archive
 with submission_utils.get_lattica_client(local_file_paths) as client:
-    key = client.keys.load(local_file_paths.KEY_DIR)
+    key = client.keys.load()
     client.encrypted_data.encrypt(
         {"db": db, "payloads": payload},
         local_file_paths.get_ct_upload_path("db_and_payloads_zip"),
