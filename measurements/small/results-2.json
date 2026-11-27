@@ -1,30 +1,29 @@
 {
   "Timing": {
-    "Dataset generation": "0.5193s",
-    "Communication: Get cryptographic context": "3.2008s",
-    "Dataset preprocessing": "1.648s",
-    "Key Generation": "12.5253s",
-    "Communication: Upload evaluation key": "22.0735s",
-    "Dataset encoding and encryption": "53.704s",
-    "Communication: Upload encrypted database": "59.9445s",
+    "Dataset generation": "0.2789s",
+    "Communication: Get cryptographic context": "2.3712s",
+    "Dataset preprocessing": "0.7517s",
+    "Key Generation": "1.585s",
+    "Communication: Upload evaluation key": "9.617s",
+    "Dataset encoding and encryption": "3.9918s",
+    "Communication: Upload encrypted database": "28.0068s",
     "Encrypted dataset preprocessing": "0.0002s",
-    "Query generation": "0.4105s",
-    "Query preprocessing": "0.0002s",
-    "Query encryption": "2.0812s",
-    "Encrypted computation": "2.1578s",
-    "Result decryption and postprocessing": "3.7884s",
-    "Total": "162.0536s"
+    "Query generation": "0.2625s",
+    "Query preprocessing": "0.6687s",
+    "Query encryption": "0.9032s",
+    "Encrypted computation": "1.8832s",
+    "Result decryption and postprocessing": "1.533s",
+    "Total": "51.8532s"
   },
   "Bandwidth": {
-    "Public and evaluation keys": "672.0M",
-    "Encrypted database": "2.3G",
-    "Encrypted query": "9.0M",
-    "Encrypted results": "3.0M"
+    "Public and evaluation keys": "156.0M",
+    "Encrypted database": "473.0M",
+    "Encrypted query": "1.8M",
+    "Encrypted results": "1.0M"
   },
   "Server Reported": {
-    "Encrypted computation": "0.284s",
-    "Backend overhead": "0.049s",
-    "Upload time": "0.078s",
-    "Download time": "0.092s"
+    "Encrypted computation": "0.0074s",
+    "Backend overhead": "0.0276s",
+    "Upload time": "0.365s"
   }
 }
